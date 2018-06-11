@@ -1,12 +1,20 @@
 package tensorflowutils
 
 import (
-	"bufio"
-	"io/ioutil"
+	"bytes"
 	"log"
-	"os"
 
 	tf "github.com/tensorflow/tensorflow/tensorflow/go"
+)
+
+// ImageType represents the type of an image, used by MakeTensorFromImage().
+type ImageType string
+
+const (
+	// PNG is a predefined type for MakeTensorFromImage().
+	PNG ImageType = "PNG"
+	// JPG is a predefined type for MakeTensorFromImage().
+	JPG ImageType = "JPG"
 )
 
 // Model represents a loaded tensorflow graph model with it's labels
@@ -40,39 +48,28 @@ func NewModel(modelFile string, lableFile string) (*Model, error) {
 	}, nil
 }
 
-func loadLabels(labelFile string) ([]string, error) {
-	labelsFile, err := os.Open(labelFile)
+// MakeTensorFromImage converts the given image (as a byte.Buffer) into a tensor.
+// Currently png and jpg is supported as image formats.
+func MakeTensorFromImage(imageBuffer *bytes.Buffer, imageFormat ImageType) (*tf.Tensor, error) {
+	tensor, err := tf.NewTensor(imageBuffer.String())
 	if err != nil {
 		return nil, err
 	}
-	defer labelsFile.Close()
-	scanner := bufio.NewScanner(labelsFile)
-
-	// assuming labels are separated by newlines
-	var labels []string
-	for scanner.Scan() {
-		labels = append(labels, scanner.Text())
-	}
-	if scanner.Err() != nil {
+	graph, input, output, err := makeTransformImageGraph(imageFormat)
+	if err != nil {
 		return nil, err
 	}
-	return labels, nil
-}
-
-func loadGraphModel(modelFile string) (*tf.Graph, *tf.Session, error) {
-	// load model
-	model, err := ioutil.ReadFile(modelFile)
+	session, err := tf.NewSession(graph, nil)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	graphModel := tf.NewGraph()
-	if err := graphModel.Import(model, ""); err != nil {
-		return nil, nil, err
-	}
-	// create session
-	sessionModel, err := tf.NewSession(graphModel, nil)
+	defer session.Close()
+	normalized, err := session.Run(
+		map[tf.Output]*tf.Tensor{input: tensor},
+		[]tf.Output{output},
+		nil)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return graphModel, sessionModel, nil
+	return normalized[0], nil
 }

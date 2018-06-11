@@ -8,4 +8,5 @@ func TestLoadLabels(t *testing.T) {
 	result, err := loadLabels("testdata/testlabels.txt")
 	// verify
 	assert.NoError(t, err)
+	assert.EqualValues(t, []string{"Horse", "Car", "Bike", "Boat"}, result)
 }
