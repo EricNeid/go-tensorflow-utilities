@@ -1,6 +1,7 @@
 package tensorflowutils
 
 import (
+	"gorgonia.org/tensor"
 	"bytes"
 	"log"
 
@@ -23,6 +24,12 @@ type Model struct {
 	sessionModel *tf.Session
 	graphModel   *tf.Graph
 	labels       []string
+}
+
+// Label represents a classified label with its propability.
+type Label struct {
+	label       string
+	propability float32
 }
 
 // NewModel loads graphModel and label from given filepath and returns a new
@@ -74,7 +81,8 @@ func MakeTensorFromImage(imageBuffer *bytes.Buffer, imageFormat ImageType) (*tf.
 	return normalized[0], nil
 }
 
-func (model *Model) run(tensor *tf.Tensor) ([]*tf.Tensor, error) {
+// Run evaluates the given tensor with this model and returns the result.
+func (model *Model) Run(tensor *tf.Tensor) ([]*tf.Tensor, error) {
 	feeds := map[tf.Output]*tf.Tensor{
 		model.graphModel.Operation("input").Output(0): tensor,
 	}
@@ -82,4 +90,24 @@ func (model *Model) run(tensor *tf.Tensor) ([]*tf.Tensor, error) {
 		model.graphModel.Operation("output").Output(0),
 	}
 	return model.sessionModel.Run(feeds, fetches, nil)
+}
+
+// ClassifyImage tries to classify the given image with the help of this model and returns
+// possible labels with a propability for each label.
+func (model *Model) ClassifyImage(imageBuffer *bytes.Buffer, imageFormat ImageType) ([]Label, error) {
+	tensor, err := MakeTensorFromImage(imageBuffer, imageFormat)
+	if err != nil {
+		return nil, err
+	}
+	result, err := model.Run(tensor)
+	if err != nil {
+		return nil, err
+	}
+
+	var labels []Label
+	propabilities := result[0].Value().([][]float32)[0])
+	for i, p := range propabilities {
+		labels := append(labels, Label{ label: model.labels[i], propability: p })
+	}
+	return labels
 }
