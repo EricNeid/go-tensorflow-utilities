@@ -20,11 +20,6 @@ type Model struct {
 // Model, containing the Graph, it's labels and the session.
 // It is assumed that the labels are separated by newlines.
 func NewModel(modelFile string, lableFile string) (*Model, error) {
-	graphModel, sessionModel, err := loadGraphModel(modelFile)
-	if err != nil {
-		return nil, err
-	}
-
 	// load labels
 	labelsFile, err := os.Open(lableFile)
 	if err != nil {
@@ -41,6 +36,26 @@ func NewModel(modelFile string, lableFile string) (*Model, error) {
 	if scanner.Err() != nil {
 		return nil, err
 	}
+
+	return NewModel(modelFile, labels)
+}
+
+// NewModel loads graphModel and label from given filepath and returns a new
+// Model, containing the Graph, it's labels and the session.
+// It is assumed that the labels are separated by newlines.
+func NewModel(modelFile string, labels []string) (*Model, error) {
+	graphModel, sessionModel, err := loadGraphModel(modelFile)
+	if err != nil {
+		return nil, err
+	}
+
+	// load labels
+	labelsFile, err := os.Open(lableFile)
+	if err != nil {
+		return nil, err
+	}
+	defer labelsFile.Close()
+	scanner := bufio.NewScanner(labelsFile)
 
 	return &Model{
 		sessionModel: sessionModel,
