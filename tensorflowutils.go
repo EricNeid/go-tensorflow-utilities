@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"io/ioutil"
 	"os"
-	"log"
 
 	tf "github.com/tensorflow/tensorflow/tensorflow/go"
 )
@@ -20,7 +19,7 @@ type Model struct {
 // NewModel loads graphModel and label from given filepath and returns a new
 // Model, containing the Graph, it's labels and the session.
 // It is assumed that the labels are separated by newlines.
-func NewModel(modelFile string, lableFile string) (*Model, err) {
+func NewModel(modelFile string, lableFile string) (*Model, error) {
 	graphModel, sessionModel, err := loadGraphModel(modelFile)
 	if err != nil {
 		return nil, err
@@ -43,7 +42,7 @@ func NewModel(modelFile string, lableFile string) (*Model, err) {
 		return nil, err
 	}
 
-	return Model{
+	return &Model{
 		sessionModel: sessionModel,
 		graphModel:   graphModel,
 		labels:       labels,
@@ -51,7 +50,6 @@ func NewModel(modelFile string, lableFile string) (*Model, err) {
 }
 
 func loadGraphModel(modelFile string) (*tf.Graph, *tf.Session, error) {
-	log.Println
 	// load model
 	model, err := ioutil.ReadFile(modelFile)
 	if err != nil {
