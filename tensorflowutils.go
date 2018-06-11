@@ -1,7 +1,6 @@
 package tensorflowutils
 
 import (
-	"gorgonia.org/tensor"
 	"bytes"
 	"log"
 
@@ -105,9 +104,9 @@ func (model *Model) ClassifyImage(imageBuffer *bytes.Buffer, imageFormat ImageTy
 	}
 
 	var labels []Label
-	propabilities := result[0].Value().([][]float32)[0])
+	propabilities := result[0].Value().([][]float32)[0]
 	for i, p := range propabilities {
-		labels := append(labels, Label{ label: model.labels[i], propability: p })
+		labels = append(labels, Label{label: model.labels[i], propability: p})
 	}
-	return labels
+	return labels, nil
 }

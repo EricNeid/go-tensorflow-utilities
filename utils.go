@@ -10,7 +10,7 @@ import (
 	"github.com/tensorflow/tensorflow/tensorflow/go/op"
 )
 
-//
+// loadLabels loads labels from the given file, assuming each label on separate line.
 func loadLabels(labelFile string) ([]string, error) {
 	labelsFile, err := os.Open(labelFile)
 	if err != nil {
@@ -48,7 +48,7 @@ func loadGraphModel(modelFile string) (*tf.Graph, *tf.Session, error) {
 	return graphModel, sessionModel, nil
 }
 
-// Creates a graph to decode, rezise and normalize an image
+// makeTransformImageGraph creates a graph to decode, rezise and normalize an image
 func makeTransformImageGraph(imageFormat ImageType) (graph *tf.Graph, input, output tf.Output, err error) {
 	const (
 		H, W  = 224, 224
