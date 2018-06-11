@@ -65,8 +65,8 @@ func makeTransformImageGraph(imageFormat ImageType) (graph *tf.Graph, input, out
 	} else if imageFormat == JPG {
 		decode = op.DecodeJpeg(s, input, op.DecodeJpegChannels(3))
 	} else {
-		return nil, input, decode, errors.New(
-			"Unsupported image type given: " + imageFormat + " Expecting " + PNG + " or " + JPG)
+		err := errors.New("Unsupported image type given: " + imageFormat.string() + " Expecting " + PNG.string() + " or " + JPG.string())
+		return nil, input, decode, err
 	}
 
 	// Div and Sub perform (value-Mean)/Scale for each pixel
@@ -84,4 +84,8 @@ func makeTransformImageGraph(imageFormat ImageType) (graph *tf.Graph, input, out
 		op.Const(s.SubScope("scale"), Scale))
 	graph, err = s.Finalize()
 	return graph, input, output, err
+}
+
+func (imageType ImageType) string() string {
+	return string(imageType)
 }

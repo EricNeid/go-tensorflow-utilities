@@ -73,3 +73,13 @@ func MakeTensorFromImage(imageBuffer *bytes.Buffer, imageFormat ImageType) (*tf.
 	}
 	return normalized[0], nil
 }
+
+func (model *Model) run(tensor *tf.Tensor) ([]*tf.Tensor, error) {
+	feeds := map[tf.Output]*tf.Tensor{
+		model.graphModel.Operation("input").Output(0): tensor,
+	}
+	fetches := []tf.Output{
+		model.graphModel.Operation("output").Output(0),
+	}
+	return model.sessionModel.Run(feeds, fetches, nil)
+}
