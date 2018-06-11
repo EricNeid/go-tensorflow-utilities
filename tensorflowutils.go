@@ -1,28 +1,27 @@
 package tensorflowutils
 
-import tf "github.com/tensorflow/tensorflow/tensorflow/go"
+import (
+	"bufio"
+	"io/ioutil"
+	"os"
+	"log"
+
+	tf "github.com/tensorflow/tensorflow/tensorflow/go"
+)
 
 // Model represents a loaded tensorflow graph model with it's labels
 // an the generated sessionModel for this graph.
 type Model struct {
-	model *tf.Graph,
-	labels []string,
 	sessionModel *tf.Session
+	graphModel   *tf.Graph
+	labels       []string
 }
 
+// NewModel loads graphModel and label from given filepath and returns a new
+// Model, containing the Graph, it's labels and the session.
+// It is assumed that the labels are separated by newlines.
 func NewModel(modelFile string, lableFile string) (*Model, err) {
-	// load model
-	model, err := ioutil.ReadFile(modelFile)
-	if err != nil {
-		return nil, err
-	}
-	graphModel = tf.NewGraph()
-	if err := graphModel.Import(model, ""); err != nil {
-		return nil, err
-	}
-
-	// create session
-	sessionModel, err = tf.NewSession(graphModel, nil)
+	graphModel, sessionModel, err := loadGraphModel(modelFile)
 	if err != nil {
 		return nil, err
 	}
@@ -36,6 +35,7 @@ func NewModel(modelFile string, lableFile string) (*Model, err) {
 	scanner := bufio.NewScanner(labelsFile)
 
 	// assuming labels are separated by newlines
+	var labels []string
 	for scanner.Scan() {
 		labels = append(labels, scanner.Text())
 	}
@@ -43,7 +43,28 @@ func NewModel(modelFile string, lableFile string) (*Model, err) {
 		return nil, err
 	}
 
-	return Model {
+	return Model{
+		sessionModel: sessionModel,
+		graphModel:   graphModel,
+		labels:       labels,
+	}, nil
+}
 
+func loadGraphModel(modelFile string) (*tf.Graph, *tf.Session, error) {
+	log.Println
+	// load model
+	model, err := ioutil.ReadFile(modelFile)
+	if err != nil {
+		return nil, nil, err
 	}
+	graphModel := tf.NewGraph()
+	if err := graphModel.Import(model, ""); err != nil {
+		return nil, nil, err
+	}
+	// create session
+	sessionModel, err := tf.NewSession(graphModel, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	return graphModel, sessionModel, nil
 }
