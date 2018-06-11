@@ -3,6 +3,7 @@ package tensorflowutils
 import (
 	"bufio"
 	"io/ioutil"
+	"log"
 	"os"
 
 	tf "github.com/tensorflow/tensorflow/tensorflow/go"
@@ -20,8 +21,27 @@ type Model struct {
 // Model, containing the Graph, it's labels and the session.
 // It is assumed that the labels are separated by newlines.
 func NewModel(modelFile string, lableFile string) (*Model, error) {
-	// load labels
-	labelsFile, err := os.Open(lableFile)
+	graphModel, sessionModel, err := loadGraphModel(modelFile)
+	if err != nil {
+		log.Println("Error while loading model.")
+		return nil, err
+	}
+
+	labels, err := loadLabels(lableFile)
+	if err != nil {
+		log.Println("Error while loading labels.")
+		return nil, err
+	}
+
+	return &Model{
+		sessionModel: sessionModel,
+		graphModel:   graphModel,
+		labels:       labels,
+	}, nil
+}
+
+func loadLabels(labelFile string) ([]string, error) {
+	labelsFile, err := os.Open(labelFile)
 	if err != nil {
 		return nil, err
 	}
@@ -36,32 +56,7 @@ func NewModel(modelFile string, lableFile string) (*Model, error) {
 	if scanner.Err() != nil {
 		return nil, err
 	}
-
-	return NewModel(modelFile, labels)
-}
-
-// NewModel loads graphModel and label from given filepath and returns a new
-// Model, containing the Graph, it's labels and the session.
-// It is assumed that the labels are separated by newlines.
-func NewModel(modelFile string, labels []string) (*Model, error) {
-	graphModel, sessionModel, err := loadGraphModel(modelFile)
-	if err != nil {
-		return nil, err
-	}
-
-	// load labels
-	labelsFile, err := os.Open(lableFile)
-	if err != nil {
-		return nil, err
-	}
-	defer labelsFile.Close()
-	scanner := bufio.NewScanner(labelsFile)
-
-	return &Model{
-		sessionModel: sessionModel,
-		graphModel:   graphModel,
-		labels:       labels,
-	}, nil
+	return labels, nil
 }
 
 func loadGraphModel(modelFile string) (*tf.Graph, *tf.Session, error) {
