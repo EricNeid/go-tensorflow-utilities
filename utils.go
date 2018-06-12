@@ -48,7 +48,7 @@ func loadGraphModel(modelFile string) (*tf.Graph, *tf.Session, error) {
 	return graphModel, sessionModel, nil
 }
 
-// makeTransformImageGraph creates a graph to decode, rezise and normalize an image
+// makeTransformImageGraph creates a graph to decode, rezise and normalize an image.
 func makeTransformImageGraph(imageFormat ImageType) (graph *tf.Graph, input, output tf.Output, err error) {
 	const (
 		H, W  = 224, 224
