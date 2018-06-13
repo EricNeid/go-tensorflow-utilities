@@ -20,15 +20,15 @@ const (
 // Model represents a loaded tensorflow graph model with it's labels
 // an the generated sessionModel for this graph.
 type Model struct {
-	sessionModel *tf.Session
-	graphModel   *tf.Graph
-	labels       []string
+	SessionModel *tf.Session
+	GraphModel   *tf.Graph
+	Labels       []string
 }
 
 // Label represents a classified label with its propability.
 type Label struct {
-	label       string
-	propability float32
+	Label       string
+	Propability float32
 }
 
 // NewModel loads graphModel and label from given filepath and returns a new
@@ -48,9 +48,9 @@ func NewModel(modelFile string, lableFile string) (*Model, error) {
 	}
 
 	return &Model{
-		sessionModel: sessionModel,
-		graphModel:   graphModel,
-		labels:       labels,
+		SessionModel: sessionModel,
+		GraphModel:   graphModel,
+		Labels:       labels,
 	}, nil
 }
 
@@ -83,12 +83,12 @@ func MakeTensorFromImage(imageBuffer *bytes.Buffer, imageFormat ImageType) (*tf.
 // Run evaluates the given tensor with this model and returns the result.
 func (model *Model) Run(tensor *tf.Tensor) ([]*tf.Tensor, error) {
 	feeds := map[tf.Output]*tf.Tensor{
-		model.graphModel.Operation("input").Output(0): tensor,
+		model.GraphModel.Operation("input").Output(0): tensor,
 	}
 	fetches := []tf.Output{
-		model.graphModel.Operation("output").Output(0),
+		model.GraphModel.Operation("output").Output(0),
 	}
-	return model.sessionModel.Run(feeds, fetches, nil)
+	return model.SessionModel.Run(feeds, fetches, nil)
 }
 
 // ClassifyImage tries to classify the given image with the help of this model and returns
@@ -106,7 +106,7 @@ func (model *Model) ClassifyImage(imageBuffer *bytes.Buffer, imageFormat ImageTy
 	var labels []Label
 	propabilities := result[0].Value().([][]float32)[0]
 	for i, p := range propabilities {
-		labels = append(labels, Label{label: model.labels[i], propability: p})
+		labels = append(labels, Label{Label: model.Labels[i], Propability: p})
 	}
 	return labels, nil
 }
