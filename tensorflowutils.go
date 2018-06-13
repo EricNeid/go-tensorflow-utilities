@@ -106,6 +106,9 @@ func (model *Model) ClassifyImage(imageBuffer *bytes.Buffer, imageFormat ImageTy
 	var labels []Label
 	propabilities := result[0].Value().([][]float32)[0]
 	for i, p := range propabilities {
+		if i >= len(model.Labels) {
+			break
+		}
 		labels = append(labels, Label{Label: model.Labels[i], Propability: p})
 	}
 	return labels, nil
