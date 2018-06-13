@@ -3,6 +3,7 @@ package tensorflowutils
 import (
 	"bytes"
 	"log"
+	"sort"
 
 	tf "github.com/tensorflow/tensorflow/tensorflow/go"
 )
@@ -28,7 +29,7 @@ type Model struct {
 // Label represents a classified label with its propability.
 type Label struct {
 	Label       string
-	Propability float32
+	Probability float32
 }
 
 // NewModel loads graphModel and label from given filepath and returns a new
@@ -109,7 +110,15 @@ func (model *Model) ClassifyImage(imageBuffer *bytes.Buffer, imageFormat ImageTy
 		if i >= len(model.Labels) {
 			break
 		}
-		labels = append(labels, Label{Label: model.Labels[i], Propability: p})
+		labels = append(labels, Label{Label: model.Labels[i], Probability: p})
 	}
+	sort.Sort(byProbability(labels))
+
 	return labels, nil
 }
+
+type byProbability []Label
+
+func (a byProbability) Len() int           { return len(a) }
+func (a byProbability) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byProbability) Less(i, j int) bool { return a[i].Probability > a[j].Probability }

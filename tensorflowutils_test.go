@@ -46,7 +46,7 @@ func TestClassifyImage(t *testing.T) {
 	// arrange
 	model, _ := NewModel(
 		"testdata/model/tensorflow_inception_graph.pb", "testdata/model/imagenet_comp_graph_label_strings.txt")
-	image, _ := ioutil.ReadFile("testdata/balloon.jpeg")
+	image, _ := ioutil.ReadFile("testdata/cat.jpeg")
 	// action
 	result, err := model.ClassifyImage(bytes.NewBuffer(image), JPG)
 	// verify
